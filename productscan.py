@@ -49,11 +49,7 @@ class Checkout:
         total_price = 0
         for item_name, count in self._items.items():
             rule = self._rules.get(item_name, None)
-            if isinstance(rule, Rule):
-                '''
-                    If the item name isn't in the ruleset, we have no price
-                    so we skip it?
-                '''
+            if isinstance(rule, Rule): # We can only calculate prices for items we have rules for
                 total_price += rule.total(count)
         return total_price/100 # I chose to store prices in cents but we return them as euros
 
@@ -72,3 +68,4 @@ if __name__ == '__main__':
     test(['VOUCHER', 'TSHIRT', 'VOUCHER'])
     test(['TSHIRT', 'TSHIRT', 'TSHIRT', 'VOUCHER', 'TSHIRT'])
     test(['VOUCHER', 'TSHIRT', 'VOUCHER', 'VOUCHER', 'MUG', 'TSHIRT', 'TSHIRT'])
+    test(['jamon', 'MUG', 'VOUCHER', 'VOUCHER', 'MUG', 'TSHIRT', 'TSHIRT', 'VOUCHER'])
