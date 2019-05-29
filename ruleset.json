@@ -1,0 +1,5 @@
+{
+    "VOUCHER": {"price": 500, "discount_rule": "lambda price, count: math.ceil(count/2)*price"},
+    "TSHIRT":  {"price":2000, "discount_rule": "lambda price, count: count*price if count<3 else count*1900"},
+    "MUG":     {"price": 750, "discount_rule": "lambda price, count: count*price"}
+}

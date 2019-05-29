@@ -1,4 +1,4 @@
-import math
+import math, json
 
 class Rule:
     '''
@@ -19,30 +19,45 @@ class Rule:
             return self._rule(self._price, count)
         return self._price * count
 
-# A ruleset comprised of item names and accompanying rules
-RULES = {
-    'VOUCHER':  Rule(500, (lambda price, count: math.ceil(count/2)*price)),
-    'TSHIRT':   Rule(2000, lambda price, count: count*price if count<3 else count*1900),
-    'MUG':      Rule(750, lambda price, count: count*price)
-}
+class RuleSet:
+    '''
+        RuleSet loads rules from a json file
+    '''
+    def __init__(self, rules_filename):
+        self._rules = {}
+        with open(rules_filename, 'r') as rules_file:
+            rules_json = json.loads(rules_file.read())
+            for item_name, props in rules_json.items():
+                self._rules[item_name] = Rule( props['price'], eval(props['discount_rule']) )
+    def get(self, item_name, default):
+        return self._rules.get(item_name, default)
+
+    @property
+    def rules(self):
+        return self._rules
 
 class Checkout:
-    def __init__(self, rules=RULES):
-        self._rules = rules
+    '''
+        Checout scans items and applies pricing rules to give a correct
+        total price.
+    '''
+    def __init__(self, ruleset):
+        self._rules = ruleset
         self._items = {} # Checkout keeps counts in buckets as a dictionary
 
-    def scan(self, item):
-        item = item.upper() # I'm a lowercase kind of guy myself to be honest.
+    def scan(self, *items):
+        for item in items:
+            item = item.upper() # I'm a lowercase kind of guy myself to be honest.
 
-        # I like to inline things
-        self._items[item] = self._items[item] + 1 if item in self._items.keys() else 1
-        '''
-            I could write it like this too if that's the prefereance
-            if item in self._items.keys():
-                self._items[item] = self._items[item] + 1
-            else:
-                self._items[item] = 1
-        '''
+            # I like to inline things
+            self._items[item] = self._items[item] + 1 if item in self._items.keys() else 1
+            '''
+                I could write it like this too if that's the prefereance
+                if item in self._items.keys():
+                    self._items[item] = self._items[item] + 1
+                else:
+                    self._items[item] = 1
+            '''
 
     @property
     def total(self):
@@ -56,17 +71,18 @@ class Checkout:
 '''
     The rest is tests
 '''
-def test(products):
-    co = Checkout()
-    for product in products:
-        co.scan(product)
+def test(products, ruleset):
+    co = Checkout(ruleset)
+    co.scan(*products)
     print('Items:', products)
     print('Total: ', co.total)
     return co.total
 
 if __name__ == '__main__':
-    assert test(['VOUCHER', 'TSHIRT', 'MUG']) == 32.5
-    assert test(['VOUCHER', 'TSHIRT', 'VOUCHER']) == 25.0
-    assert test(['TSHIRT', 'TSHIRT', 'TSHIRT', 'VOUCHER', 'TSHIRT']) == 81.0
-    assert test(['VOUCHER', 'TSHIRT', 'VOUCHER', 'VOUCHER', 'MUG', 'TSHIRT', 'TSHIRT']) == 74.5
-    assert test(['jamon', 'MUG', 'VOUCHER', 'VOUCHER', 'MUG', 'TSHIRT', 'TSHIRT', 'VOUCHER']) == 65.0
+    rs = RuleSet('ruleset.json')
+
+    assert test(['VOUCHER', 'TSHIRT', 'MUG'], rs) == 32.5
+    assert test(['VOUCHER', 'TSHIRT', 'VOUCHER'], rs) == 25.0
+    assert test(['TSHIRT', 'TSHIRT', 'TSHIRT', 'VOUCHER', 'TSHIRT'], rs) == 81.0
+    assert test(['VOUCHER', 'TSHIRT', 'VOUCHER', 'VOUCHER', 'MUG', 'TSHIRT', 'TSHIRT'], rs) == 74.5
+    assert test(['jamon', 'MUG', 'VOUCHER', 'VOUCHER', 'MUG', 'TSHIRT', 'TSHIRT', 'VOUCHER'], rs) == 65.0
