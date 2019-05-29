@@ -62,10 +62,11 @@ def test(products):
         co.scan(product)
     print('Items:', products)
     print('Total: ', co.total)
+    return co.total
 
 if __name__ == '__main__':
-    test(['VOUCHER', 'TSHIRT', 'MUG'])
-    test(['VOUCHER', 'TSHIRT', 'VOUCHER'])
-    test(['TSHIRT', 'TSHIRT', 'TSHIRT', 'VOUCHER', 'TSHIRT'])
-    test(['VOUCHER', 'TSHIRT', 'VOUCHER', 'VOUCHER', 'MUG', 'TSHIRT', 'TSHIRT'])
-    test(['jamon', 'MUG', 'VOUCHER', 'VOUCHER', 'MUG', 'TSHIRT', 'TSHIRT', 'VOUCHER'])
+    assert test(['VOUCHER', 'TSHIRT', 'MUG']) == 32.5
+    assert test(['VOUCHER', 'TSHIRT', 'VOUCHER']) == 25.0
+    assert test(['TSHIRT', 'TSHIRT', 'TSHIRT', 'VOUCHER', 'TSHIRT']) == 81.0
+    assert test(['VOUCHER', 'TSHIRT', 'VOUCHER', 'VOUCHER', 'MUG', 'TSHIRT', 'TSHIRT']) == 74.5
+    assert test(['jamon', 'MUG', 'VOUCHER', 'VOUCHER', 'MUG', 'TSHIRT', 'TSHIRT', 'VOUCHER']) == 65.0
