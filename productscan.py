@@ -29,8 +29,11 @@ class RuleSet:
             rules_json = json.loads(rules_file.read())
             for item_name, props in rules_json.items():
                 try:
-                    rule_lambda = eval(props['discount_rule'])
-                    self._rules[item_name] = Rule( props['price'], eval(props['discount_rule']) )
+                    # There may or may not be a discount_rule accompanying the price
+                    # let's look for it and try and evaluate it.
+                    discount_rule = props.get('discount_rule', None)
+                    rule_lambda = eval(discount_rule) if isinstance(discount_rule, str) else None
+                    self._rules[item_name] = Rule( props['price'], rule_lambda )
                 except Exception:
                     # We should probably raise an exception here, rather than leave the items out.
                     # However, while asked for production code, I'm not sure which context this is
@@ -79,7 +82,7 @@ class Checkout:
                 # However, while asked for production code, I'm not sure which context this is
                 # going to be used in and what the correct error handling flow would look like.
                 print('Warning: no rule found for %s, skipping items'%item_name)
-                
+
         return total_price/100 # I chose to store prices in cents but we return them as euros
 
 '''
@@ -99,4 +102,4 @@ if __name__ == '__main__':
     assert test(['VOUCHER', 'TSHIRT', 'VOUCHER'], rs) == 25.0
     assert test(['TSHIRT', 'TSHIRT', 'TSHIRT', 'VOUCHER', 'TSHIRT'], rs) == 81.0
     assert test(['VOUCHER', 'TSHIRT', 'VOUCHER', 'VOUCHER', 'MUG', 'TSHIRT', 'TSHIRT'], rs) == 74.5
-    assert test(['jamon', 'MUG', 'VOUCHER', 'VOUCHER', 'MUG', 'TSHIRT', 'TSHIRT', 'VOUCHER'], rs) == 65.0
+    assert test(['jamon', 'MUG', 'VOUCHER', 'VOUCHER', 'MUG', 'TSHIRT', 'TSHIRT', 'VOUCHER'], rs) == 75.0
