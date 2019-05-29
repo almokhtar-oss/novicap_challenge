@@ -28,7 +28,15 @@ class RuleSet:
         with open(rules_filename, 'r') as rules_file:
             rules_json = json.loads(rules_file.read())
             for item_name, props in rules_json.items():
-                self._rules[item_name] = Rule( props['price'], eval(props['discount_rule']) )
+                try:
+                    rule_lambda = eval(props['discount_rule'])
+                    self._rules[item_name] = Rule( props['price'], eval(props['discount_rule']) )
+                except Exception:
+                    # We should probably raise an exception here, rather than leave the items out.
+                    # However, while asked for production code, I'm not sure which context this is
+                    # going to be used in and what the correct error handling flow would look like.
+                    print('Rule %s cannot be evaluated'%item_name)
+
     def get(self, item_name, default):
         return self._rules.get(item_name, default)
 
@@ -66,6 +74,12 @@ class Checkout:
             rule = self._rules.get(item_name, None)
             if isinstance(rule, Rule): # We can only calculate prices for items we have rules for
                 total_price += rule.total(count)
+            else:
+                # We should probably raise an exception here, rather than leave the items out.
+                # However, while asked for production code, I'm not sure which context this is
+                # going to be used in and what the correct error handling flow would look like.
+                print('Warning: no rule found for %s, skipping items'%item_name)
+                
         return total_price/100 # I chose to store prices in cents but we return them as euros
 
 '''
